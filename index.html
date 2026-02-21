@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HORIZON PRINTS — Premium 3D Prints</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --surface2: #1a1a1a;
+    --border: #2a2a2a;
+    --accent: #ff4d00;
+    --accent2: #ffb800;
+    --text: #f0ede8;
+    --muted: #666;
+    --success: #00c896;
+    --danger: #ff3b3b;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  
+  /* NOISE TEXTURE */
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:9999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.4;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 16px 32px;
+    background: rgba(10,10,10,0.95); backdrop-filter:blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { font-family:'Bebas Neue'; font-size:28px; letter-spacing:3px; color:var(--accent); }
+  .nav-links { display:flex; gap:24px; align-items:center; }
+  .nav-links a { color: var(--muted); text-decoration:none; font-size:14px; letter-spacing:1px; text-transform:uppercase; transition:color .2s; cursor:pointer; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-btn { background: var(--accent); color:#fff; border:none; padding:8px 20px; font-family:'DM Sans'; font-size:13px; font-weight:500; letter-spacing:1px; text-transform:uppercase; cursor:pointer; transition:all .2s; }
+  .nav-btn:hover { background:#e04400; }
+  .cart-badge { display:inline-flex; align-items:center; gap:6px; }
+  .badge { background:var(--accent); color:#fff; border-radius:50%; width:18px;height:18px; font-size:11px; display:flex;align-items:center;justify-content:center; font-weight:700; }
+
+  /* SIDEBAR */
+  .sidebar-toggle {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 18px; transition: all .2s; flex-shrink: 0;
+  }
+  .sidebar-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .sidebar-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    z-index: 199; opacity: 0; pointer-events: none; transition: opacity .3s;
+  }
+  .sidebar-overlay.open { opacity: 1; pointer-events: all; }
+  .sidebar {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 300px;
+    background: var(--surface); border-left: 1px solid var(--border);
+    z-index: 200; transform: translateX(100%); transition: transform .35s cubic-bezier(.4,0,.2,1);
+    display: flex; flex-direction: column; overflow-y: auto;
+  }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .sidebar-logo { font-family:'Bebas Neue'; font-size:22px; letter-spacing:3px; color: var(--accent); }
+  .sidebar-close {
+    background: none; border: none; color: var(--muted); font-size: 20px;
+    cursor: pointer; transition: color .2s; line-height: 1;
+  }
+  .sidebar-close:hover { color: var(--text); }
+  .sidebar-section { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+  .sidebar-section-label {
+    font-family: 'JetBrains Mono'; font-size: 10px; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
+  }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 14px; color: var(--text); cursor: pointer;
+    transition: all .2s; border: 1px solid transparent; margin-bottom: 4px;
+    font-size: 14px; letter-spacing: .5px;
+  }
+  .sidebar-link:hover { background: var(--surface2); border-color: var(--border); color: var(--accent); }
+  .sidebar-link .sl-icon { font-size: 20px; width: 28px; text-align: center; flex-shrink: 0; }
+  .sidebar-link .sl-label { font-family: 'DM Sans'; font-weight: 500; }
+  .sidebar-link .sl-badge {
+    margin-left: auto; background: var(--accent); color: #fff;
+    border-radius: 50%; width: 18px; height: 18px; font-size: 11px;
+    display: flex; align-items: center; justify-content: center; font-weight: 700;
+  }
+  .sidebar-user-card {
+    padding: 20px 24px; background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-user-name { font-family:'Bebas Neue'; font-size:20px; letter-spacing:2px; color: var(--text); }
+  .sidebar-user-meta { font-family:'JetBrains Mono'; font-size:11px; color: var(--muted); margin-top:4px; }
+
+  /* CART PAGE */
+  .cart-section { max-width:700px; margin:0 auto; padding:40px 32px; }
+  .cart-empty { text-align:center; padding:60px 20px; color:var(--muted); }
+  .cart-item { background:var(--surface); border:1px solid var(--border); padding:20px 24px; margin-bottom:12px; display:flex; align-items:center; gap:16px; }
+  .cart-item-emoji { font-size:40px; }
+  .cart-item-info { flex:1; }
+  .cart-item-name { font-family:'Bebas Neue'; font-size:20px; letter-spacing:1px; }
+  .cart-item-meta { font-family:'JetBrains Mono'; font-size:12px; color:var(--muted); margin-top:4px; }
+  .cart-item-price { font-family:'JetBrains Mono'; font-size:18px; font-weight:700; color:var(--accent); }
+  .cart-due-notice { background:#ffb80015; border:1px solid #ffb80040; padding:16px 20px; font-size:13px; color:var(--accent2); margin-bottom:24px; display:flex; gap:10px; align-items:flex-start; }
+
+  /* REFUND */
+  .refund-badge { font-family:'JetBrains Mono'; font-size:11px; padding:3px 8px; }
+  .status-refund-requested { background:#a855f720; color:#c084fc; border:1px solid #a855f7; }
+  .status-refund-approved { background:#00c89620; color:var(--success); border:1px solid var(--success); }
+  .status-refund-denied { background:#ff3b3b20; color:var(--danger); border:1px solid var(--danger); }
+
+  /* HERO */
+  .hero {
+    padding: 80px 32px 60px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items:center;
+    max-width: 1200px; margin: 0 auto;
+  }
+  .hero-tag { font-family:'JetBrains Mono'; font-size:12px; color:var(--accent); letter-spacing:2px; text-transform:uppercase; margin-bottom:16px; }
+  .hero h1 { font-family:'Bebas Neue'; font-size:clamp(64px,8vw,120px); line-height:.9; letter-spacing:2px; }
+  .hero h1 span { color:var(--accent); }
+  .hero p { color:var(--muted); margin-top:20px; font-size:16px; line-height:1.6; max-width:440px; }
+  .hero-visual {
+    display:flex; align-items:center; justify-content:center;
+    height:340px; position:relative;
+  }
+  .dragon-3d {
+    font-size:140px; 
+    animation: float 3s ease-in-out infinite;
+    filter: drop-shadow(0 20px 40px rgba(255,77,0,0.4));
+    cursor:grab;
+    user-select:none;
+    transition: transform .1s;
+  }
+  .dragon-3d:active { cursor:grabbing; }
+  @keyframes float { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-20px) rotate(5deg)} }
+  .hero-badge {
+    position:absolute; bottom:20px; right:20px;
+    background:var(--accent); color:#fff;
+    font-family:'Bebas Neue'; font-size:20px; letter-spacing:2px;
+    padding:8px 16px; transform:rotate(3deg);
+  }
+
+  /* PAGES */
+  .page { display:none; }
+  .page.active { display:block; }
+
+  /* SHOP */
+  .shop-section { max-width:1200px; margin:0 auto; padding: 40px 32px; }
+  .section-title { font-family:'Bebas Neue'; font-size:48px; letter-spacing:3px; margin-bottom:8px; }
+  .section-sub { color:var(--muted); font-size:14px; margin-bottom:40px; }
+  .products-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:24px; }
+
+  .product-card {
+    background: var(--surface); border: 1px solid var(--border);
+    overflow:hidden; transition: all .3s; position:relative;
+  }
+  .product-card:hover { border-color:var(--accent); transform:translateY(-4px); box-shadow:0 20px 40px rgba(255,77,0,0.1); }
+  .product-img { height:200px; display:flex; align-items:center; justify-content:center; background:var(--surface2); font-size:80px; position:relative; overflow:hidden; }
+  .product-img-draggable { cursor:grab; transition:transform .2s; display:inline-block; }
+  .product-img-draggable:active { cursor:grabbing; }
+  .stock-badge {
+    position:absolute; top:12px; right:12px;
+    font-family:'JetBrains Mono'; font-size:11px; padding:4px 10px;
+  }
+  .in-stock { background:#00c89620; color:var(--success); border:1px solid var(--success); }
+  .out-stock { background:#ff3b3b20; color:var(--danger); border:1px solid var(--danger); }
+  .product-info { padding:20px; }
+  .product-name { font-family:'Bebas Neue'; font-size:22px; letter-spacing:1px; }
+  .product-desc { color:var(--muted); font-size:13px; margin:6px 0 16px; line-height:1.5; }
+  .product-footer { display:flex; align-items:center; justify-content:space-between; }
+  .product-price { font-family:'JetBrains Mono'; font-size:20px; font-weight:700; color:var(--accent); }
+  .product-price.discounted { color: var(--accent2); }
+  .price-original { font-size:13px; color:var(--muted); text-decoration:line-through; margin-left:6px; }
+  .btn { border:none; padding:10px 20px; font-family:'DM Sans'; font-size:13px; font-weight:500; letter-spacing:1px; text-transform:uppercase; cursor:pointer; transition:all .2s; }
+  .btn-primary { background:var(--accent); color:#fff; }
+  .btn-primary:hover { background:#e04400; }
+  .btn-primary:disabled { background:var(--border); color:var(--muted); cursor:not-allowed; }
+  .btn-secondary { background:transparent; color:var(--text); border:1px solid var(--border); }
+  .btn-secondary:hover { border-color:var(--accent); color:var(--accent); }
+  .btn-danger { background:var(--danger); color:#fff; }
+  .btn-success { background:var(--success); color:#000; font-weight:700; }
+
+  /* MODAL */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px);
+    z-index:1000; display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:var(--surface); border:1px solid var(--border); max-width:480px; width:100%;
+    padding:40px; position:relative;
+    animation: slideUp .3s ease;
+  }
+  @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  .modal-close { position:absolute; top:16px; right:16px; background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer; transition:color .2s; }
+  .modal-close:hover { color:var(--text); }
+  .modal h2 { font-family:'Bebas Neue'; font-size:32px; letter-spacing:2px; margin-bottom:8px; }
+  .modal p { color:var(--muted); font-size:14px; margin-bottom:24px; line-height:1.6; }
+  .modal-actions { display:flex; gap:12px; margin-top:24px; }
+  .modal-actions .btn { flex:1; padding:14px; }
+
+  /* FORMS */
+  .form-group { margin-bottom:20px; }
+  .form-group label { display:block; font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; font-family:'JetBrains Mono'; }
+  .form-group input, .form-group select, .form-group textarea {
+    width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text);
+    padding:12px 16px; font-family:'DM Sans'; font-size:14px; outline:none; transition:border .2s;
+  }
+  .form-group input:focus, .form-group select:focus { border-color:var(--accent); }
+  .form-group textarea { resize:vertical; min-height:80px; }
+
+  /* AUTH PAGE */
+  .auth-container { max-width:440px; margin:80px auto; padding:0 32px; }
+  .auth-tabs { display:flex; gap:0; margin-bottom:32px; border-bottom:1px solid var(--border); }
+  .auth-tab { background:none; border:none; color:var(--muted); padding:12px 24px; font-family:'DM Sans'; font-size:14px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; border-bottom:2px solid transparent; transition:all .2s; margin-bottom:-1px; }
+  .auth-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+  .auth-form { display:none; }
+  .auth-form.active { display:block; }
+  .auth-title { font-family:'Bebas Neue'; font-size:48px; letter-spacing:3px; margin-bottom:8px; }
+  .auth-sub { color:var(--muted); font-size:13px; margin-bottom:32px; }
+  .auth-error { background:#ff3b3b20; border:1px solid var(--danger); color:var(--danger); padding:12px 16px; font-size:13px; margin-bottom:16px; display:none; }
+
+  /* ADMIN */
+  .admin-section { max-width:1100px; margin:0 auto; padding:40px 32px; }
+  .admin-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:40px; }
+  .admin-title { font-family:'Bebas Neue'; font-size:48px; letter-spacing:3px; }
+  .admin-tag { font-family:'JetBrains Mono'; font-size:11px; background:var(--accent); color:#fff; padding:4px 10px; letter-spacing:2px; }
+  .admin-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px; }
+  .admin-card { background:var(--surface); border:1px solid var(--border); padding:24px; }
+  .admin-card h3 { font-family:'Bebas Neue'; font-size:24px; letter-spacing:2px; margin-bottom:4px; }
+  .admin-card .big-num { font-family:'Bebas Neue'; font-size:56px; line-height:1; color:var(--accent); margin:8px 0; }
+  .admin-card p { color:var(--muted); font-size:13px; }
+  .orders-table { background:var(--surface); border:1px solid var(--border); overflow:hidden; margin-top:24px; }
+  .orders-table table { width:100%; border-collapse:collapse; }
+  .orders-table th { background:var(--surface2); font-family:'JetBrains Mono'; font-size:11px; letter-spacing:2px; text-transform:uppercase; padding:14px 16px; text-align:left; color:var(--muted); border-bottom:1px solid var(--border); }
+  .orders-table td { padding:14px 16px; font-size:13px; border-bottom:1px solid var(--border); }
+  .orders-table tr:last-child td { border-bottom:none; }
+  .status-badge { font-family:'JetBrains Mono'; font-size:11px; padding:3px 8px; letter-spacing:1px; }
+  .status-pending { background:#ffb80020; color:var(--accent2); border:1px solid var(--accent2); }
+  .status-paid { background:#00c89620; color:var(--success); border:1px solid var(--success); }
+  .status-cancelled { background:#ff3b3b20; color:var(--danger); border:1px solid var(--danger); }
+  .products-manage { margin-top:32px; }
+  .manage-row { display:flex; align-items:center; gap:12px; padding:16px; background:var(--surface); border:1px solid var(--border); margin-bottom:8px; }
+  .manage-row .emoji { font-size:32px; width:48px; text-align:center; }
+  .manage-info { flex:1; }
+  .manage-info .name { font-family:'Bebas Neue'; font-size:18px; letter-spacing:1px; }
+  .manage-info .meta { color:var(--muted); font-size:12px; font-family:'JetBrains Mono'; }
+  .manage-controls { display:flex; gap:8px; align-items:center; }
+  .manage-controls input { width:70px; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:6px 10px; font-family:'JetBrains Mono'; font-size:13px; outline:none; text-align:center; }
+  .manage-controls input:focus { border-color:var(--accent); }
+  .discount-input { width:80px !important; }
+
+  /* ORDERS PAGE */
+  .orders-section { max-width:800px; margin:0 auto; padding:40px 32px; }
+  .order-card { background:var(--surface); border:1px solid var(--border); padding:24px; margin-bottom:16px; }
+  .order-card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .order-id { font-family:'JetBrains Mono'; font-size:12px; color:var(--muted); }
+  .order-product { display:flex; align-items:center; gap:12px; }
+  .order-emoji { font-size:32px; }
+  .order-details { flex:1; }
+  .order-name { font-family:'Bebas Neue'; font-size:18px; letter-spacing:1px; }
+  .order-price { font-family:'JetBrains Mono'; font-size:14px; color:var(--accent); }
+  .order-note { background:var(--surface2); border-left:3px solid var(--accent2); padding:12px 16px; margin-top:12px; font-size:13px; color:var(--accent2); }
+
+  /* TOAST */
+  .toast {
+    position:fixed; bottom:24px; right:24px; z-index:9000;
+    background:var(--surface); border:1px solid var(--border); padding:16px 20px;
+    font-size:14px; transform:translateX(200%); transition:transform .3s ease;
+    max-width:320px; border-left:3px solid var(--accent);
+  }
+  .toast.show { transform:translateX(0); }
+  .toast.success { border-left-color:var(--success); }
+  .toast.error { border-left-color:var(--danger); }
+
+  /* USER BAR */
+  .user-bar { font-family:'JetBrains Mono'; font-size:12px; color:var(--muted); display:flex; align-items:center; gap:8px; }
+  .user-bar span { color:var(--accent); }
+
+  /* DRAG INSTRUCTIONS */
+  .drag-hint { font-family:'JetBrains Mono'; font-size:10px; color:var(--muted); letter-spacing:1px; text-align:center; margin-top:8px; }
+  .floating-dragon {
+    position:fixed; font-size:60px; z-index:9998; pointer-events:none;
+    filter:drop-shadow(0 10px 20px rgba(255,77,0,0.5));
+    transform:translate(-50%,-50%);
+    display:none;
+  }
+
+  @media(max-width:768px) {
+    .hero { grid-template-columns:1fr; }
+    .hero-visual { height:200px; }
+    .dragon-3d { font-size:90px; }
+    .admin-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- FLOATING DRAGON (during drag) -->
+<div class="floating-dragon" id="floatingDragon">🐉</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">HORIZON PRINTS</div>
+  <div class="nav-links">
+    <div class="cart-badge">
+      <a onclick="showPage('cart')">🛒 Cart</a>
+      <span class="badge" id="cartBadge">0</span>
+    </div>
+    <div id="authArea">
+      <button class="nav-btn" onclick="showPage('auth')">Sign In</button>
+    </div>
+    <div id="userArea" style="display:none">
+      <div class="user-bar">Hello, <span id="userNameDisplay"></span></div>
+    </div>
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="Menu" style="margin-left:8px;">☰</button>
+  </div>
+</nav>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">HORIZON PRINTS</div>
+    <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+  </div>
+
+  <!-- USER CARD (shown when logged in) -->
+  <div class="sidebar-user-card" id="sidebarUserCard" style="display:none;">
+    <div style="font-family:'JetBrains Mono';font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:8px;">SIGNED IN AS</div>
+    <div class="sidebar-user-name" id="sidebarUserName"></div>
+    <div class="sidebar-user-meta" id="sidebarUserMeta"></div>
+    <button onclick="closeSidebar();logout();" style="margin-top:14px;background:none;border:1px solid var(--border);color:var(--muted);padding:7px 16px;font-family:'DM Sans';font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">↩ Logout</button>
+  </div>
+
+  <!-- NOT LOGGED IN (shown when logged out) -->
+  <div class="sidebar-section" id="sidebarAuthBtns">
+    <div class="sidebar-section-label">Account</div>
+    <button onclick="closeSidebar();showPage('auth');" style="width:100%;background:var(--accent);color:#fff;border:none;padding:12px;font-family:'DM Sans';font-size:13px;font-weight:500;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-bottom:8px;" onmouseover="this.style.background='#e04400'" onmouseout="this.style.background='var(--accent)'">Sign In / Register →</button>
+  </div>
+
+  <!-- MAIN NAV -->
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Navigate</div>
+    <div class="sidebar-link" onclick="closeSidebar();showPage('home')">
+      <span class="sl-icon">🏠</span><span class="sl-label">Home</span>
+    </div>
+    <div class="sidebar-link" onclick="closeSidebar();showPage('shop')">
+      <span class="sl-icon">🛒</span><span class="sl-label">Shop</span>
+    </div>
+    <div class="sidebar-link" onclick="closeSidebar();showPage('cart')" id="sidebarCartLink">
+      <span class="sl-icon">📦</span><span class="sl-label">Cart</span>
+      <span class="sl-badge" id="sidebarCartBadge">0</span>
+    </div>
+  </div>
+
+  <!-- ACCOUNT NAV (logged in only) -->
+  <div class="sidebar-section" id="sidebarAccountSection" style="display:none;">
+    <div class="sidebar-section-label">My Account</div>
+    <div class="sidebar-link" onclick="closeSidebar();showPage('orders')">
+      <span class="sl-icon">🗂️</span><span class="sl-label">My Orders</span>
+    </div>
+  </div>
+
+  <!-- ADMIN (admin only) -->
+  <div class="sidebar-section" id="sidebarAdminSection" style="display:none;">
+    <div class="sidebar-section-label">Admin</div>
+    <div class="sidebar-link" onclick="closeSidebar();showPage('admin')">
+      <span class="sl-icon">⚙️</span><span class="sl-label">Admin Panel</span>
+    </div>
+  </div>
+
+  <!-- INFO PAGES -->
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Info</div>
+    <div class="sidebar-link" onclick="closeSidebar();showPage('about')">
+      <span class="sl-icon">ℹ️</span><span class="sl-label">About Us</span>
+    </div>
+    <div class="sidebar-link" onclick="closeSidebar();showPage('coming-soon')">
+      <span class="sl-icon">🚀</span><span class="sl-label">Coming Soon</span>
+    </div>
+    <div class="sidebar-link" onclick="closeSidebar();showPage('terms')">
+      <span class="sl-icon">📋</span><span class="sl-label">Terms & Conditions</span>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="padding:20px 24px;margin-top:auto;border-top:1px solid var(--border);">
+    <div style="font-family:'JetBrains Mono';font-size:10px;color:var(--muted);letter-spacing:1px;line-height:1.8;">
+      HORIZON PRINTS<br>Hand-printed. Locally made.<br>Pay in person.
+    </div>
+  </div>
+</div>
+
+<!-- HOME PAGE -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div>
+      <div class="hero-tag">// Premium 3D Prints</div>
+      <h1>MAKE IT <span>REAL</span></h1>
+      <p>Hand-crafted 3D printed collectibles, models, and functional objects. Every piece made to order with premium PLA filament.</p>
+      <div style="margin-top:32px; display:flex; gap:12px;" id="heroBtns">
+        <button class="btn btn-primary" onclick="showPage('shop')" style="padding:14px 32px; font-size:15px;">Shop Now</button>
+        <button class="btn btn-secondary" id="heroCreateBtn" onclick="showPage('auth')" style="padding:14px 32px; font-size:15px;">Create Account</button>
+      </div>
+      <div style="margin-top:40px; display:flex; gap:32px;">
+        <div><div style="font-family:'Bebas Neue';font-size:32px;color:var(--accent);">12+</div><div style="font-size:12px;color:var(--muted);">Products</div></div>
+        <div><div style="font-family:'Bebas Neue';font-size:32px;color:var(--accent);">24h</div><div style="font-size:12px;color:var(--muted);">Print Time</div></div>
+        <div><div style="font-family:'Bebas Neue';font-size:32px;color:var(--accent);">PLA+</div><div style="font-size:12px;color:var(--muted);">Material</div></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="dragon-3d" id="heroDragon" title="Drag me!">🐉</div>
+      <div class="hero-badge">ONLY $3</div>
+    </div>
+  </div>
+  <div style="text-align:center; padding:20px; color:var(--muted); font-family:'JetBrains Mono'; font-size:11px; letter-spacing:2px;">↑ DRAG THE DRAGON AROUND ↑</div>
+
+  <!-- HOW IT WORKS -->
+  <div style="background:var(--surface); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:64px 32px; margin-top:40px;">
+    <div style="max-width:1000px;margin:0 auto;">
+      <div style="font-family:'JetBrains Mono';font-size:11px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:12px;">// Process</div>
+      <div style="font-family:'Bebas Neue';font-size:48px;letter-spacing:3px;text-align:center;margin-bottom:48px;">HOW IT WORKS</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:32px;text-align:center;">
+        <div>
+          <div style="font-size:48px;margin-bottom:16px;">🛒</div>
+          <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:8px;">1. BROWSE & ORDER</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.6;">Pick what you want from the shop and place your order online in seconds.</div>
+        </div>
+        <div>
+          <div style="font-size:48px;margin-bottom:16px;">🖨️</div>
+          <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:8px;">2. WE PRINT IT</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.6;">Your item is printed fresh using high-quality PLA+ or PETG filament within 24 hours.</div>
+        </div>
+        <div>
+          <div style="font-size:48px;margin-bottom:16px;">🤝</div>
+          <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:8px;">3. COLLECT & PAY</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.6;">Pick up your order in person and pay on collection. No online payments, ever.</div>
+        </div>
+        <div>
+          <div style="font-size:48px;margin-bottom:16px;">⭐</div>
+          <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:8px;">4. ENJOY IT</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.6;">Show it off, use it, gift it. Every item is made with care and attention to detail.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURED PRODUCTS TEASER -->
+  <div style="max-width:1000px;margin:0 auto;padding:64px 32px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:40px;flex-wrap:wrap;gap:16px;">
+      <div>
+        <div style="font-family:'JetBrains Mono';font-size:11px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:8px;">// Featured</div>
+        <div style="font-family:'Bebas Neue';font-size:48px;letter-spacing:3px;">POPULAR PICKS</div>
+      </div>
+      <button class="btn btn-secondary" onclick="showPage('shop')" style="padding:12px 28px;">View All →</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;">
+      <div onclick="showPage('shop')" style="background:var(--surface);border:1px solid var(--border);padding:24px;text-align:center;cursor:pointer;transition:all .3s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:52px;margin-bottom:12px;">🐉</div>
+        <div style="font-family:'Bebas Neue';font-size:18px;letter-spacing:1px;">Movable Dragon</div>
+        <div style="font-family:'JetBrains Mono';font-size:14px;color:var(--accent);margin-top:4px;">$3.00</div>
+      </div>
+      <div onclick="showPage('shop')" style="background:var(--surface);border:1px solid var(--border);padding:24px;text-align:center;cursor:pointer;transition:all .3s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:52px;margin-bottom:12px;">♟️</div>
+        <div style="font-family:'Bebas Neue';font-size:18px;letter-spacing:1px;">Chess Set</div>
+        <div style="font-family:'JetBrains Mono';font-size:14px;color:var(--accent);margin-top:4px;">$18.00</div>
+      </div>
+      <div onclick="showPage('shop')" style="background:var(--surface);border:1px solid var(--border);padding:24px;text-align:center;cursor:pointer;transition:all .3s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:52px;margin-bottom:12px;">🏰</div>
+        <div style="font-family:'Bebas Neue';font-size:18px;letter-spacing:1px;">Tiny Castle</div>
+        <div style="font-family:'JetBrains Mono';font-size:14px;color:var(--accent);margin-top:4px;">$12.00</div>
+      </div>
+      <div onclick="showPage('shop')" style="background:var(--surface);border:1px solid var(--border);padding:24px;text-align:center;cursor:pointer;transition:all .3s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="font-size:52px;margin-bottom:12px;">🐟</div>
+        <div style="font-family:'Bebas Neue';font-size:18px;letter-spacing:1px;">Articulated Fish</div>
+        <div style="font-family:'JetBrains Mono';font-size:14px;color:var(--accent);margin-top:4px;">$5.00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHY US -->
+  <div style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:64px 32px;">
+    <div style="max-width:1000px;margin:0 auto;">
+      <div style="font-family:'JetBrains Mono';font-size:11px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:12px;">// Why Choose Us</div>
+      <div style="font-family:'Bebas Neue';font-size:48px;letter-spacing:3px;text-align:center;margin-bottom:48px;">THE HORIZON DIFFERENCE</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;">
+        <div style="padding:28px;border:1px solid var(--border);">
+          <div style="font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">✦ PREMIUM MATERIALS</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7;">We only use top-grade PLA+ and PETG filament. No cheap knock-offs — your prints are built to last and look stunning.</div>
+        </div>
+        <div style="padding:28px;border:1px solid var(--border);">
+          <div style="font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">✦ MADE TO ORDER</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7;">Every item is printed fresh when you order. No dusty warehouse stock — your print is always brand new.</div>
+        </div>
+        <div style="padding:28px;border:1px solid var(--border);">
+          <div style="font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">✦ PAY IN PERSON</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7;">No sketchy online transactions. You see your item, you're happy, then you pay. Simple and trustworthy.</div>
+        </div>
+        <div style="padding:28px;border:1px solid var(--border);">
+          <div style="font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">✦ FAST TURNAROUND</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7;">Most prints are ready within 24 hours of ordering. We'll let you know when it's ready to collect.</div>
+        </div>
+        <div style="padding:28px;border:1px solid var(--border);">
+          <div style="font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">✦ CUSTOM REQUESTS</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7;">Got something specific in mind? Reach out — we love custom jobs and unique challenges.</div>
+        </div>
+        <div style="padding:28px;border:1px solid var(--border);">
+          <div style="font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;color:var(--accent);margin-bottom:10px;">✦ EASY REFUNDS</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7;">Not happy? Submit a refund request right from your orders page and we'll sort it out quickly.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA BANNER -->
+  <div style="max-width:1000px;margin:0 auto;padding:64px 32px;text-align:center;">
+    <div style="font-family:'Bebas Neue';font-size:clamp(40px,6vw,80px);letter-spacing:3px;line-height:1;margin-bottom:16px;">READY TO ORDER <span style="color:var(--accent);">SOMETHING EPIC?</span></div>
+    <div style="color:var(--muted);font-size:16px;margin-bottom:32px;max-width:500px;margin-left:auto;margin-right:auto;">Browse the shop, place your order, and we'll have it printed and ready to collect before you know it.</div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="showPage('shop')" style="padding:16px 40px;font-size:16px;">Browse the Shop</button>
+      <button class="btn btn-secondary" onclick="showPage('terms')" style="padding:16px 40px;font-size:16px;">Read Our T&C</button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div style="border-top:1px solid var(--border);padding:32px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+    <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:3px;color:var(--accent);">HORIZON PRINTS</div>
+    <div style="font-size:13px;color:var(--muted);">Hand-printed. Locally made. Pay in person.</div>
+    <div style="display:flex;gap:20px;font-size:13px;">
+      <a onclick="showPage('shop')" style="color:var(--muted);cursor:pointer;text-decoration:none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Shop</a>
+      <a onclick="showPage('about')" style="color:var(--muted);cursor:pointer;text-decoration:none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">About</a>
+      <a onclick="showPage('terms')" style="color:var(--muted);cursor:pointer;text-decoration:none;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">Terms & Conditions</a>
+    </div>
+  </div>
+</div>
+
+<!-- COMING SOON PAGE -->
+<div class="page" id="page-coming-soon">
+  <div style="max-width:860px;margin:0 auto;padding:60px 32px;">
+    <div style="font-family:'JetBrains Mono';font-size:11px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;">// On The Horizon</div>
+    <div style="font-family:'Bebas Neue';font-size:clamp(48px,7vw,80px);letter-spacing:3px;line-height:1;margin-bottom:16px;">COMING <span style="color:var(--accent);">SOON</span></div>
+    <div style="color:var(--muted);font-size:16px;line-height:1.7;margin-bottom:48px;max-width:560px;">We're always working on new features and improvements. Here's a sneak peek at what's coming to Horizon Prints.</div>
+
+    <!-- FEATURE CARDS -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-bottom:48px;">
+
+      <div style="background:var(--surface);border:1px solid var(--accent);padding:28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:12px;right:12px;font-family:'JetBrains Mono';font-size:10px;background:var(--accent);color:#fff;padding:3px 8px;letter-spacing:1px;">NEXT UP</div>
+        <div style="font-size:40px;margin-bottom:16px;">📦</div>
+        <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:10px;">ORDER TRACKING</div>
+        <div style="color:var(--muted);font-size:14px;line-height:1.7;">Real-time status updates on your orders — from "Printing Started" right through to "Ready to Collect". You'll always know exactly where your print is in the process.</div>
+        <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
+          <span style="font-family:'JetBrains Mono';font-size:11px;color:var(--accent);border:1px solid var(--accent);padding:3px 8px;">In Progress</span>
+          <span style="font-family:'JetBrains Mono';font-size:11px;color:var(--accent);border:1px solid var(--accent);padding:3px 8px;">Printing</span>
+          <span style="font-family:'JetBrains Mono';font-size:11px;color:var(--accent);border:1px solid var(--accent);padding:3px 8px;">Ready</span>
+        </div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:12px;right:12px;font-family:'JetBrains Mono';font-size:10px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);padding:3px 8px;letter-spacing:1px;">PLANNED</div>
+        <div style="font-size:40px;margin-bottom:16px;">🎨</div>
+        <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:10px;">COLOUR PICKER</div>
+        <div style="color:var(--muted);font-size:14px;line-height:1.7;">Choose your filament colour at checkout. Pick from our available range of PLA+ colours and we'll print your item in exactly the shade you want.</div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:12px;right:12px;font-family:'JetBrains Mono';font-size:10px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);padding:3px 8px;letter-spacing:1px;">PLANNED</div>
+        <div style="font-size:40px;margin-bottom:16px;">🔔</div>
+        <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:10px;">NOTIFICATIONS</div>
+        <div style="color:var(--muted);font-size:14px;line-height:1.7;">Get notified when your order is ready to collect, when new products drop, or when a sold-out item is back in stock.</div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:12px;right:12px;font-family:'JetBrains Mono';font-size:10px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);padding:3px 8px;letter-spacing:1px;">PLANNED</div>
+        <div style="font-size:40px;margin-bottom:16px;">⭐</div>
+        <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:10px;">REVIEWS</div>
+        <div style="color:var(--muted);font-size:14px;line-height:1.7;">Leave a rating and review on products you've received. Help other customers know what to expect and help us improve.</div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:12px;right:12px;font-family:'JetBrains Mono';font-size:10px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);padding:3px 8px;letter-spacing:1px;">PLANNED</div>
+        <div style="font-size:40px;margin-bottom:16px;">🖼️</div>
+        <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:10px;">PRODUCT PHOTOS</div>
+        <div style="color:var(--muted);font-size:14px;line-height:1.7;">Real photos of completed prints so you know exactly what you're getting before you order. No more guessing from descriptions alone.</div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:12px;right:12px;font-family:'JetBrains Mono';font-size:10px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);padding:3px 8px;letter-spacing:1px;">PLANNED</div>
+        <div style="font-size:40px;margin-bottom:16px;">🛠️</div>
+        <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:10px;">CUSTOM ORDERS</div>
+        <div style="color:var(--muted);font-size:14px;line-height:1.7;">A dedicated page to submit custom print requests directly through the site — upload a file, describe what you need, and get a quote.</div>
+      </div>
+
+    </div>
+
+    <!-- ROADMAP STRIP -->
+    <div style="background:var(--surface);border:1px solid var(--border);padding:28px;">
+      <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:20px;">ROADMAP</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div style="width:12px;height:12px;background:var(--accent);flex-shrink:0;"></div>
+          <div style="font-family:'JetBrains Mono';font-size:12px;color:var(--accent);width:120px;flex-shrink:0;">NOW</div>
+          <div style="font-size:14px;color:var(--text);">Shop, accounts, orders, refunds, admin panel</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div style="width:12px;height:12px;background:var(--accent2);flex-shrink:0;"></div>
+          <div style="font-family:'JetBrains Mono';font-size:12px;color:var(--accent2);width:120px;flex-shrink:0;">NEXT</div>
+          <div style="font-size:14px;color:var(--text);">Order tracking with live status stages</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div style="width:12px;height:12px;background:var(--border);border:1px solid var(--muted);flex-shrink:0;"></div>
+          <div style="font-family:'JetBrains Mono';font-size:12px;color:var(--muted);width:120px;flex-shrink:0;">SOON</div>
+          <div style="font-size:14px;color:var(--muted);">Colour picker, notifications, product photos</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div style="width:12px;height:12px;background:var(--border);border:1px solid var(--muted);flex-shrink:0;"></div>
+          <div style="font-family:'JetBrains Mono';font-size:12px;color:var(--muted);width:120px;flex-shrink:0;">LATER</div>
+          <div style="font-size:14px;color:var(--muted);">Reviews, custom order submissions</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ABOUT PAGE -->
+<div class="page" id="page-about">
+  <div style="max-width:800px;margin:0 auto;padding:60px 32px;">
+    <div style="font-family:'JetBrains Mono';font-size:11px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;">// Our Story</div>
+    <div style="font-family:'Bebas Neue';font-size:64px;letter-spacing:3px;line-height:1;margin-bottom:32px;">ABOUT HORIZON PRINTS</div>
+    <div style="color:var(--muted);font-size:16px;line-height:1.8;margin-bottom:24px;">
+      Horizon Prints started as a passion project — a single printer, a garage, and a love for turning digital designs into real-world objects. What began as printing parts for friends quickly grew into something more.
+    </div>
+    <div style="color:var(--muted);font-size:16px;line-height:1.8;margin-bottom:24px;">
+      Today we print everything from articulated creatures and miniature models to functional household items. Every single piece is printed fresh on demand — we don't keep stock sitting around gathering dust.
+    </div>
+    <div style="color:var(--muted);font-size:16px;line-height:1.8;margin-bottom:48px;">
+      We believe in keeping things simple: order online, we print it, you collect and pay in person. No complicated checkout flows, no hidden fees, no stress.
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:48px;">
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;">
+        <div style="font-family:'Bebas Neue';font-size:48px;color:var(--accent);">500+</div>
+        <div style="font-size:14px;color:var(--muted);margin-top:4px;">Prints completed</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;">
+        <div style="font-family:'Bebas Neue';font-size:48px;color:var(--accent);">24H</div>
+        <div style="font-size:14px;color:var(--muted);margin-top:4px;">Average turnaround</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;">
+        <div style="font-family:'Bebas Neue';font-size:48px;color:var(--accent);">PLA+</div>
+        <div style="font-size:14px;color:var(--muted);margin-top:4px;">Premium filament only</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;">
+        <div style="font-family:'Bebas Neue';font-size:48px;color:var(--accent);">100%</div>
+        <div style="font-size:14px;color:var(--muted);margin-top:4px;">Made to order</div>
+      </div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);padding:32px;border-left:4px solid var(--accent);">
+      <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;margin-bottom:12px;">GOT A CUSTOM REQUEST?</div>
+      <div style="color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:16px;">We love a challenge. If you have a specific design in mind — a character, a part, a gift idea — get in touch and we'll see what we can do. Custom prints are priced on request.</div>
+      <button class="btn btn-primary" onclick="showPage('shop')" style="padding:12px 28px;">Browse the Shop →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TERMS & CONDITIONS PAGE -->
+<div class="page" id="page-terms">
+  <div style="max-width:800px;margin:0 auto;padding:60px 32px;">
+    <div style="font-family:'JetBrains Mono';font-size:11px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;">// Legal</div>
+    <div style="font-family:'Bebas Neue';font-size:64px;letter-spacing:3px;line-height:1;margin-bottom:8px;">TERMS &amp; CONDITIONS</div>
+    <div style="font-family:'JetBrains Mono';font-size:12px;color:var(--muted);margin-bottom:40px;">Last updated: February 2026</div>
+
+    <div style="display:flex;flex-direction:column;gap:32px;">
+
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;">
+        <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">1. ACCEPTANCE OF TERMS</div>
+        <div style="color:var(--muted);font-size:14px;line-height:1.8;">By creating an account or placing an order with Horizon Prints, you agree to be bound by these Terms and Conditions. If you do not agree, please do not use our service. We reserve the right to update these terms at any time, with changes effective immediately upon posting.</div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;">
+        <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">2. ORDERS & PAYMENT</div>
+        <div style="color:var(--muted);font-size:14px;line-height:1.8;">All orders are placed online but <strong style="color:var(--text);">payment is made in person</strong> at the time of collection. No payment details are collected or stored on this website. By placing an order, you commit to collecting and paying for your item within a reasonable time frame. Failure to collect may result in your order being cancelled and your account being flagged.</div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;">
+        <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">3. STOCK & AVAILABILITY</div>
+        <div style="color:var(--muted);font-size:14px;line-height:1.8;">All items are listed with a stock count. Once an item is ordered, the stock is reserved for you. If for any reason we cannot fulfil your order, we will contact you and your order will be cancelled at no cost. Stock levels are updated in real time.</div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;">
+        <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">4. RETURNS & REFUNDS</div>
+        <div style="color:var(--muted);font-size:14px;line-height:1.8;">Because each item is printed specifically for your order, we generally do not accept returns unless the item is defective or not as described. To request a refund, use the refund request feature in your orders page. Refund requests are reviewed within 2 business days. Approved refunds are issued in full at the time of return in person. We reserve the right to decline refund requests that we deem unreasonable.</div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;">
+        <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">5. ACCOUNTS & DATA</div>
+        <div style="color:var(--muted);font-size:14px;line-height:1.8;">Account information including your username, email, and order history is stored locally in your browser. We do not transmit your data to any external servers. You are responsible for keeping your login credentials secure. We reserve the right to suspend or terminate accounts that misuse the platform.</div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;">
+        <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">6. PRODUCT QUALITY</div>
+        <div style="color:var(--muted);font-size:14px;line-height:1.8;">All products are 3D printed using FDM (Fused Deposition Modelling) technology. Minor layer lines, slight colour variation, and small support marks are normal characteristics of FDM printing and do not constitute defects. We take care to produce the best quality possible, but some cosmetic variation is inherent to the process.</div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;">
+        <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">7. LIMITATION OF LIABILITY</div>
+        <div style="color:var(--muted);font-size:14px;line-height:1.8;">Horizon Prints is not liable for any indirect, incidental, or consequential damages arising from the use of our products. Our total liability shall not exceed the price paid for the item in question. Products are not toys unless stated and may contain small parts — keep away from children under 3.</div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);padding:28px;">
+        <div style="font-family:'Bebas Neue';font-size:22px;letter-spacing:2px;color:var(--accent);margin-bottom:12px;">8. CONTACT</div>
+        <div style="color:var(--muted);font-size:14px;line-height:1.8;">If you have any questions about these terms or a specific order, please reach out to us in person or via your account. We're a small operation and we're always happy to talk things through directly.</div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:40px;padding:24px;border:1px solid var(--accent);background:#ff4d0010;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <div style="font-size:32px;">📋</div>
+      <div style="flex:1;">
+        <div style="font-family:'Bebas Neue';font-size:18px;letter-spacing:2px;margin-bottom:4px;">BY PLACING AN ORDER YOU AGREE TO THESE TERMS</div>
+        <div style="color:var(--muted);font-size:13px;">Questions? Talk to us in person when you collect your order.</div>
+      </div>
+      <button class="btn btn-primary" onclick="showPage('shop')" style="padding:12px 24px;">Shop Now →</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHOP PAGE -->
+<div class="page" id="page-shop">
+  <div class="shop-section">
+    <div class="section-title">THE SHOP</div>
+    <div class="section-sub">All items printed on demand. Stock is limited — grab yours before it's gone.</div>
+    <div class="products-grid" id="productsGrid"></div>
+  </div>
+</div>
+
+<!-- AUTH PAGE -->
+<div class="page" id="page-auth">
+  <div class="auth-container">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+    </div>
+    <!-- LOGIN -->
+    <div class="auth-form active" id="form-login">
+      <div class="auth-title">WELCOME BACK</div>
+      <div class="auth-sub">Sign in to your FORGE3D account</div>
+      <div class="auth-error" id="loginError"></div>
+      <div class="form-group"><label>Username</label><input type="text" id="loginUser" placeholder="your username"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+      <button class="btn btn-primary" style="width:100%;padding:14px;" onclick="doLogin()">Sign In →</button>
+    </div>
+    <!-- REGISTER -->
+    <div class="auth-form" id="form-register">
+      <div class="auth-title">JOIN HORIZON PRINTS</div>
+      <div class="auth-sub">Create your account to start ordering</div>
+      <div class="auth-error" id="registerError"></div>
+      <div class="form-group">
+        <label>Real Name</label>
+        <input type="text" id="regRealName" placeholder="e.g. Jamie Smith">
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;font-family:'JetBrains Mono';letter-spacing:.5px;">🔒 Private — only used so we know who we're printing for. Never shared.</div>
+      </div>
+      <div class="form-group"><label>Username</label><input type="text" id="regUser" placeholder="choose a username"></div>
+      <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="you@example.com"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="regPass" placeholder="min 6 characters"></div>
+      <div class="form-group"><label>Confirm Password</label><input type="password" id="regPass2" placeholder="repeat password"></div>
+      <button class="btn btn-primary" style="width:100%;padding:14px;" onclick="doRegister()">Create Account →</button>
+    </div>
+  </div>
+</div>
+
+<!-- CART PAGE -->
+<div class="page" id="page-cart">
+  <div class="cart-section">
+    <div class="section-title">YOUR CART</div>
+    <div class="section-sub" style="margin-bottom:24px;">Items you've ordered that are awaiting payment.</div>
+    <div id="cartContainer"></div>
+  </div>
+</div>
+
+<!-- ORDERS PAGE -->
+<div class="page" id="page-orders">
+  <div class="orders-section">
+    <div class="section-title">MY ORDERS</div>
+    <div class="section-sub" style="margin-bottom:24px;">Your full order history — oldest to newest. Pay in person when you pick up your item.</div>
+    <div id="ordersContainer"></div>
+  </div>
+</div>
+
+<!-- REFUND REQUEST MODAL -->
+<div class="modal-overlay" id="refundModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('refundModal')">✕</button>
+    <div style="font-size:40px;margin-bottom:12px;">↩</div>
+    <h2>REQUEST REFUND</h2>
+    <p>Explain why you'd like a refund. The admin will review your request and get back to you.</p>
+    <div style="background:var(--surface2);border:1px solid var(--border);padding:14px 16px;margin-bottom:16px;">
+      <div style="font-family:'JetBrains Mono';font-size:11px;color:var(--muted);margin-bottom:4px;">ORDER</div>
+      <div id="refundOrderSummary" style="font-family:'Bebas Neue';font-size:18px;letter-spacing:1px;"></div>
+    </div>
+    <div class="form-group">
+      <label>Reason for Refund</label>
+      <textarea id="refundReason" placeholder="e.g. Wrong colour, damaged during shipping, changed my mind..." style="min-height:100px;"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('refundModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitRefund()">Submit Request →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PAGE -->
+<div class="page" id="page-admin">
+  <div class="admin-section">
+    <div class="admin-header">
+      <div>
+        <div class="admin-title">ADMIN PANEL</div>
+        <div style="color:var(--muted);font-size:13px;">Full control over the shop</div>
+      </div>
+      <div class="admin-tag">DEV MODE</div>
+    </div>
+
+    <div class="admin-grid" id="adminStats"></div>
+
+    <!-- MANAGE PRODUCTS -->
+    <div class="orders-table">
+      <div style="padding:20px 20px 0; display:flex; align-items:center; justify-content:space-between;">
+        <div style="font-family:'Bebas Neue';font-size:28px;letter-spacing:2px;">MANAGE PRODUCTS</div>
+      </div>
+      <div class="products-manage" id="adminProducts" style="padding:12px 20px 20px;"></div>
+    </div>
+
+    <!-- REFUND REQUESTS TABLE -->
+    <div class="orders-table" style="margin-top:24px;">
+      <div style="padding:20px 20px 0; display:flex; align-items:center; justify-content:space-between;">
+        <div style="font-family:'Bebas Neue';font-size:28px;letter-spacing:2px;">REFUND REQUESTS <span id="refundAlertBadge" style="display:none;background:var(--danger);color:#fff;font-size:14px;padding:2px 10px;margin-left:10px;vertical-align:middle;">NEW</span></div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="adminRefundsTable">
+          <thead>
+            <tr><th>Order ID</th><th>User</th><th>Product</th><th>Amount</th><th>Reason</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="adminRefundsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ORDERS TABLE -->
+    <div class="orders-table" style="margin-top:24px;">
+      <div style="padding:20px 20px 0;">
+        <div style="font-family:'Bebas Neue';font-size:28px;letter-spacing:2px;">ALL ORDERS</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="adminOrdersTable">
+          <thead>
+            <tr>
+              <th>Order ID</th><th>User</th><th>Product</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="adminOrdersBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('confirmModal')">✕</button>
+    <div style="font-size:48px;margin-bottom:16px;" id="confirmEmoji">🐉</div>
+    <h2 id="confirmTitle">ARE YOU SURE?</h2>
+    <p id="confirmBody">You're about to purchase this item. Payment will be collected the day after your order. Do you want to continue?</p>
+    <div style="background:var(--surface2);border:1px solid var(--border);padding:16px;margin:16px 0;">
+      <div style="font-family:'JetBrains Mono';font-size:12px;color:var(--muted);margin-bottom:4px;">ORDER SUMMARY</div>
+      <div id="confirmSummary" style="font-family:'Bebas Neue';font-size:22px;letter-spacing:1px;"></div>
+      <div style="color:var(--muted);font-size:12px;margin-top:4px;">📅 Pay in person when collecting your item</div>
+    </div>
+    <div style="background:#ffb80015;border:1px solid #ffb80040;padding:12px 16px;font-size:13px;color:var(--accent2);">
+      💵 Payment is made <strong>in person</strong> when you collect your item — not online.
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Cancel</button>
+      <button class="btn btn-primary" id="confirmBtn" onclick="confirmPurchase()">Yes, Order It →</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="modal-overlay" id="successModal">
+  <div class="modal" style="text-align:center;">
+    <div style="font-size:64px;margin-bottom:16px;">✅</div>
+    <h2 style="color:var(--success);">ORDER PLACED!</h2>
+    <p>Your order has been confirmed. Payment is made <strong style="color:var(--accent2);">in person</strong> when you collect your item — no online payment needed. We'll start printing!</p>
+    <button class="btn btn-success" style="width:100%;padding:14px;margin-top:24px;" onclick="closeModal('successModal');showPage('orders')">View My Orders</button>
+  </div>
+</div>
+
+<!-- ADD PRODUCT MODAL (Admin) -->
+<div class="modal-overlay" id="addProductModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('addProductModal')">✕</button>
+    <h2>ADD PRODUCT</h2>
+    <p>Add a new item to the shop</p>
+    <div class="form-group"><label>Product Name</label><input type="text" id="newProductName" placeholder="e.g. Dragon Skull"></div>
+    <div class="form-group"><label>Emoji Icon</label><input type="text" id="newProductEmoji" placeholder="e.g. 💀" maxlength="4"></div>
+    <div class="form-group"><label>Description</label><textarea id="newProductDesc" placeholder="Describe the product..."></textarea></div>
+    <div class="form-group"><label>Price ($)</label><input type="number" id="newProductPrice" placeholder="9.99" step="0.01" min="0.01"></div>
+    <div class="form-group"><label>Initial Stock</label><input type="number" id="newProductStock" placeholder="1" min="1" value="1"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('addProductModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addProduct()">Add Product →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== DATA LAYER (localStorage) ====================
+const DB = {
+  get: (k) => { try { return JSON.parse(localStorage.getItem('horizonprints_'+k)) } catch(e) { return null }},
+  set: (k,v) => localStorage.setItem('horizonprints_'+k, JSON.stringify(v)),
+};
+
+function initDB() {
+  if (!DB.get('users')) {
+    DB.set('users', [{ username:'DEV', email:'dev@horizonprints.com', password:'67', isAdmin:true }]);
+  }
+  if (!DB.get('products')) {
+    DB.set('products', [
+      { id:1, name:'Movable Dragon', emoji:'🐉', desc:'An articulated dragon with joints that actually move! Perfect for display or play. Printed in vibrant PETG.', price:3.00, stock:1, discount:0, draggable:true },
+      { id:2, name:'Skull Vase', emoji:'💀', desc:'Gothic skull vase with an open top for flowers or pens. Haunting and functional.', price:8.50, stock:1, discount:0 },
+      { id:3, name:'Rocket Ship', emoji:'🚀', desc:'Classic retro-futurism rocket, 15cm tall. Great on any desk or shelf.', price:6.00, stock:1, discount:0 },
+      { id:4, name:'Chess Set', emoji:'♟️', desc:'Full chess set — all 32 pieces plus a folding board. Your move.', price:18.00, stock:1, discount:0 },
+      { id:5, name:'Cable Organizer', emoji:'🔧', desc:'Modular cable management clips. Print more as needed.', price:4.50, stock:1, discount:0 },
+      { id:6, name:'Articulated Fish', emoji:'🐟', desc:'Fidget-friendly articulated fish that wiggles realistically. Stress relief approved.', price:5.00, stock:1, discount:0 },
+      { id:7, name:'Tiny Castle', emoji:'🏰', desc:'Detailed 5-piece miniature castle with removable towers. Paint it yourself!', price:12.00, stock:1, discount:0 },
+      { id:8, name:'Geometric Lamp Shade', emoji:'💡', desc:'Parametric dodecahedron lamp shade. Fits standard E27 bulbs.', price:14.00, stock:1, discount:0 },
+    ]);
+  }
+  if (!DB.get('orders')) { DB.set('orders', []); }
+}
+
+// ==================== STATE ====================
+let currentUser = null;
+let pendingOrder = null;
+initDB();
+
+// Restore session
+const savedSession = sessionStorage.getItem('forge3d_session');
+if (savedSession) {
+  const users = DB.get('users');
+  const u = users.find(u => u.username === savedSession);
+  if (u) loginUser(u);
+}
+
+// ==================== AUTH ====================
+function loginUser(u) {
+  currentUser = u;
+  sessionStorage.setItem('forge3d_session', u.username);
+  document.getElementById('authArea').style.display = 'none';
+  document.getElementById('userArea').style.display = 'flex';
+  document.getElementById('userNameDisplay').textContent = u.username;
+  const heroCreateBtn = document.getElementById('heroCreateBtn');
+  if (heroCreateBtn) heroCreateBtn.style.display = 'none';
+  updateCartBadge();
+  updateSidebarState();
+}
+
+function logout() {
+  currentUser = null;
+  sessionStorage.removeItem('forge3d_session');
+  document.getElementById('authArea').style.display = 'block';
+  document.getElementById('userArea').style.display = 'none';
+  document.getElementById('cartBadge').textContent = '0';
+  document.getElementById('sidebarCartBadge').textContent = '0';
+  const heroCreateBtn = document.getElementById('heroCreateBtn');
+  if (heroCreateBtn) heroCreateBtn.style.display = 'inline-block';
+  closeSidebar();
+  showPage('home');
+  showToast('Logged out successfully', 'success');
+}
+
+function doLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  err.style.display = 'none';
+  if (!user || !pass) { err.textContent = 'Please fill in all fields.'; err.style.display='block'; return; }
+  const users = DB.get('users');
+  const found = users.find(u => u.username === user && u.password === pass);
+  if (!found) { err.textContent = 'Invalid username or password.'; err.style.display='block'; return; }
+  loginUser(found);
+  showToast('Welcome back, ' + found.username + '!', 'success');
+  showPage('shop');
+}
+
+function doRegister() {
+  const realName = document.getElementById('regRealName').value.trim();
+  const user = document.getElementById('regUser').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const pass2 = document.getElementById('regPass2').value;
+  const err = document.getElementById('registerError');
+  err.style.display = 'none';
+  if (!realName || !user || !email || !pass || !pass2) { err.textContent = 'Please fill in all fields including your real name.'; err.style.display='block'; return; }
+  if (pass.length < 6) { err.textContent = 'Password must be at least 6 characters.'; err.style.display='block'; return; }
+  if (pass !== pass2) { err.textContent = 'Passwords do not match.'; err.style.display='block'; return; }
+  const users = DB.get('users');
+  if (users.find(u => u.username.toLowerCase() === user.toLowerCase())) { err.textContent = 'Username already taken.'; err.style.display='block'; return; }
+  const newUser = { username: user, realName, email, password: pass, isAdmin: false };
+  users.push(newUser);
+  DB.set('users', users);
+  loginUser(newUser);
+  showToast('Account created! Welcome to Horizon Prints!', 'success');
+  showPage('shop');
+}
+
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.getElementById('form-login').classList.toggle('active', tab==='login');
+  document.getElementById('form-register').classList.toggle('active', tab==='register');
+}
+
+// ==================== SHOP ====================
+function renderProducts() {
+  const products = DB.get('products');
+  const grid = document.getElementById('productsGrid');
+  grid.innerHTML = products.map(p => {
+    const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)).toFixed(2) : p.price.toFixed(2);
+    const inStock = p.stock > 0;
+    return `
+    <div class="product-card">
+      <div class="product-img" id="imgWrap_${p.id}">
+        <span class="${p.draggable ? 'product-img-draggable' : ''}" id="productEmoji_${p.id}" ${p.draggable ? `onmousedown="startDrag(event, ${p.id})" title="Drag me!"` : ''}>${p.emoji}</span>
+        <span class="stock-badge ${inStock ? 'in-stock' : 'out-stock'}">${inStock ? 'IN STOCK: '+p.stock : 'SOLD OUT'}</span>
+      </div>
+      <div class="product-info">
+        <div class="product-name">${p.name} ${p.draggable ? '<span style="font-size:11px;color:var(--accent);font-family:JetBrains Mono;letter-spacing:1px;">✦ DRAGGABLE</span>':''}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-footer">
+          <div>
+            <span class="product-price ${p.discount>0?'discounted':''}">$${finalPrice}</span>
+            ${p.discount > 0 ? `<span class="price-original">$${p.price.toFixed(2)}</span> <span style="font-family:JetBrains Mono;font-size:11px;color:var(--accent2);">-${p.discount}%</span>` : ''}
+          </div>
+          <button class="btn btn-primary" ${!inStock ? 'disabled' : ''} onclick="initiateBuy(${p.id})">${inStock ? 'Buy Now' : 'Sold Out'}</button>
+        </div>
+        ${p.draggable ? '<div class="drag-hint">↑ Drag the emoji to move it!</div>' : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function initiateBuy(productId) {
+  if (!currentUser) {
+    showToast('Please sign in to purchase', 'error');
+    showPage('auth');
+    return;
+  }
+  const products = DB.get('products');
+  const p = products.find(x => x.id === productId);
+  if (!p || p.stock < 1) { showToast('Sorry, this item is out of stock!', 'error'); return; }
+  pendingOrder = p;
+  const finalPrice = p.discount > 0 ? (p.price * (1 - p.discount/100)).toFixed(2) : p.price.toFixed(2);
+  document.getElementById('confirmEmoji').textContent = p.emoji;
+  document.getElementById('confirmTitle').textContent = 'ARE YOU SURE?';
+  document.getElementById('confirmBody').textContent = `You're about to order "${p.name}". Pay in person when you collect. Ready to proceed?`;
+  document.getElementById('confirmSummary').textContent = `${p.name} — $${finalPrice}`;
+  openModal('confirmModal');
+}
+
+function confirmPurchase() {
+  if (!pendingOrder || !currentUser) return;
+  const products = DB.get('products');
+  const idx = products.findIndex(x => x.id === pendingOrder.id);
+  if (idx === -1 || products[idx].stock < 1) { showToast('Sorry, just sold out!', 'error'); closeModal('confirmModal'); return; }
+  products[idx].stock -= 1;
+  DB.set('products', products);
+  const finalPrice = pendingOrder.discount > 0 ? (pendingOrder.price * (1 - pendingOrder.discount/100)).toFixed(2) : pendingOrder.price.toFixed(2);
+  const due = new Date(); due.setDate(due.getDate()+1);
+  const orders = DB.get('orders');
+  const newOrder = {
+    id: 'FG-' + Date.now(),
+    userId: currentUser.username,
+    productId: pendingOrder.id,
+    productName: pendingOrder.name,
+    productEmoji: pendingOrder.emoji,
+    price: finalPrice,
+    status: 'pending',
+    orderedAt: new Date().toISOString(),
+    dueAt: due.toISOString(),
+  };
+  orders.push(newOrder);
+  DB.set('orders', orders);
+  updateCartBadge();
+  closeModal('confirmModal');
+  openModal('successModal');
+  renderProducts();
+  pendingOrder = null;
+}
+
+// ==================== CART ====================
+function renderCart() {
+  const orders = DB.get('orders').filter(o => o.userId === currentUser?.username && o.status === 'pending');
+  const container = document.getElementById('cartContainer');
+  if (orders.length === 0) {
+    container.innerHTML = `<div class="cart-empty">
+      <div style="font-size:48px;margin-bottom:16px;">🛒</div>
+      <div style="font-family:'Bebas Neue';font-size:28px;letter-spacing:2px;">CART IS EMPTY</div>
+      <div style="font-size:13px;margin-top:8px;">No pending orders. Go grab something!</div>
+      <button class="btn btn-primary" style="margin-top:20px;padding:12px 28px;" onclick="showPage('shop')">Go Shopping</button>
+    </div>`;
+    return;
+  }
+  const total = orders.reduce((s,o) => s + parseFloat(o.price), 0);
+  container.innerHTML = `
+    <div class="cart-due-notice">
+      <span style="font-size:18px;">💵</span>
+      <div><strong style="color:var(--accent2);">Pay in person</strong> when you collect your item. No online payment required. Bring cash or arrange with the seller directly.</div>
+    </div>
+    ${orders.map(o => {
+      const due = new Date(o.dueAt).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      return `<div class="cart-item">
+        <span class="cart-item-emoji">${o.productEmoji}</span>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${o.productName}</div>
+          <div class="cart-item-meta">Order ${o.id} · Pay by ${due} in person</div>
+        </div>
+        <div class="cart-item-price">$${o.price}</div>
+      </div>`;
+    }).join('')}
+    <div style="background:var(--surface);border:1px solid var(--border);padding:20px 24px;display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+      <div style="font-family:'Bebas Neue';font-size:20px;letter-spacing:2px;color:var(--muted);">TOTAL DUE IN PERSON</div>
+      <div style="font-family:'JetBrains Mono';font-size:24px;font-weight:700;color:var(--accent);">$${total.toFixed(2)}</div>
+    </div>`;
+}
+
+// ==================== ORDERS ====================
+function renderOrders() {
+  const orders = DB.get('orders').filter(o => o.userId === currentUser?.username);
+  const container = document.getElementById('ordersContainer');
+  if (orders.length === 0) {
+    container.innerHTML = `<div style="text-align:center;padding:60px;color:var(--muted);">
+      <div style="font-size:48px;margin-bottom:16px;">📦</div>
+      <div style="font-family:'Bebas Neue';font-size:28px;letter-spacing:2px;">NO ORDERS YET</div>
+      <div style="font-size:13px;margin-top:8px;">Head to the shop to grab something!</div>
+      <button class="btn btn-primary" style="margin-top:20px;padding:12px 28px;" onclick="showPage('shop')">Go Shopping</button>
+    </div>`;
+    return;
+  }
+  // oldest to newest (original order)
+  container.innerHTML = orders.map(o => {
+    const due = new Date(o.dueAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const ordered = new Date(o.orderedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const statusMap = { pending:'status-pending', paid:'status-paid', cancelled:'status-cancelled', refund_requested:'status-refund-requested', refund_approved:'status-refund-approved', refund_denied:'status-refund-denied' };
+    const statusLabel = { pending:'PENDING', paid:'PAID', cancelled:'CANCELLED', refund_requested:'REFUND REQUESTED', refund_approved:'REFUND APPROVED', refund_denied:'REFUND DENIED' };
+    const sc = statusMap[o.status] || 'status-pending';
+    const sl = statusLabel[o.status] || o.status.toUpperCase();
+    const canRefund = (o.status === 'pending' || o.status === 'paid');
+    return `<div class="order-card">
+      <div class="order-card-header">
+        <span class="order-id">${o.id}</span>
+        <span class="status-badge ${sc}">${sl}</span>
+      </div>
+      <div class="order-product">
+        <span class="order-emoji">${o.productEmoji}</span>
+        <div class="order-details">
+          <div class="order-name">${o.productName}</div>
+          <div class="order-price">$${o.price}</div>
+        </div>
+        ${canRefund ? `<button class="btn btn-secondary" style="padding:7px 14px;font-size:12px;" onclick="openRefundModal('${o.id}')">↩ Request Refund</button>` : ''}
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono';">Ordered: ${ordered}</div>
+      ${o.status === 'pending' ? `<div class="order-note">💵 Pay in person by <strong>${due}</strong> when you collect your item.</div>` : ''}
+      ${o.refundReason ? `<div style="background:var(--surface2);border-left:3px solid #a855f7;padding:10px 14px;margin-top:10px;font-size:12px;color:#c084fc;">Refund reason: "${o.refundReason}"</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ==================== REFUND ====================
+let pendingRefundId = null;
+function openRefundModal(orderId) {
+  const orders = DB.get('orders');
+  const o = orders.find(x=>x.id===orderId);
+  if (!o) return;
+  pendingRefundId = orderId;
+  document.getElementById('refundOrderSummary').textContent = `${o.productEmoji} ${o.productName} — $${o.price}`;
+  document.getElementById('refundReason').value = '';
+  openModal('refundModal');
+}
+
+function submitRefund() {
+  const reason = document.getElementById('refundReason').value.trim();
+  if (!reason) { showToast('Please provide a reason for the refund', 'error'); return; }
+  const orders = DB.get('orders');
+  const o = orders.find(x=>x.id===pendingRefundId);
+  if (!o) return;
+  o.status = 'refund_requested';
+  o.refundReason = reason;
+  o.refundRequestedAt = new Date().toISOString();
+  DB.set('orders', orders);
+  closeModal('refundModal');
+  showToast('Refund request sent to admin!', 'success');
+  renderOrders();
+  updateCartBadge();
+  pendingRefundId = null;
+}
+
+// ==================== ADMIN ====================
+function getUserLabel(userId) {
+  const users = DB.get('users');
+  const u = users.find(x => x.username === userId);
+  if (!u) return userId;
+  return u.realName ? `${u.username} <span style="color:var(--accent2);font-size:11px;">(${u.realName})</span>` : u.username;
+}
+
+function renderAdmin() {
+  const products = DB.get('products');
+  const orders = DB.get('orders');
+  const users = DB.get('users').filter(u => !u.isAdmin);
+  const revenue = orders.filter(o=>o.status==='paid').reduce((s,o)=>s+parseFloat(o.price),0);
+  const refundReqs = orders.filter(o=>o.status==='refund_requested');
+  document.getElementById('adminStats').innerHTML = `
+    <div class="admin-card"><h3>TOTAL ORDERS</h3><div class="big-num">${orders.length}</div><p>${orders.filter(o=>o.status==='pending').length} pending payment</p></div>
+    <div class="admin-card"><h3>REVENUE</h3><div class="big-num">$${revenue.toFixed(0)}</div><p>From paid orders</p></div>
+    <div class="admin-card"><h3>CUSTOMERS</h3><div class="big-num">${users.length}</div><p>Registered accounts</p></div>
+    <div class="admin-card" style="${refundReqs.length>0?'border-color:#a855f7;':''}""><h3>REFUND REQUESTS</h3><div class="big-num" style="${refundReqs.length>0?'color:#c084fc;':''}">${refundReqs.length}</div><p>Awaiting your review</p></div>
+  `;
+
+  document.getElementById('adminProducts').innerHTML = products.map(p => `
+    <div class="manage-row">
+      <span class="emoji">${p.emoji}</span>
+      <div class="manage-info">
+        <div class="name">${p.name}</div>
+        <div class="meta">$${p.price.toFixed(2)} | Stock: ${p.stock} | Discount: ${p.discount}%</div>
+      </div>
+      <div class="manage-controls">
+        <label style="font-size:11px;color:var(--muted);font-family:JetBrains Mono;">Stock:</label>
+        <input type="number" min="0" value="${p.stock}" id="stock_${p.id}" style="width:70px;">
+        <label style="font-size:11px;color:var(--muted);font-family:JetBrains Mono;">Disc%:</label>
+        <input type="number" min="0" max="100" value="${p.discount}" id="disc_${p.id}" class="discount-input" style="width:70px;">
+        <button class="btn btn-success" style="padding:7px 14px;font-size:12px;" onclick="saveProductAdmin(${p.id})">Save</button>
+        <button class="btn btn-danger" style="padding:7px 14px;font-size:12px;" onclick="deleteProduct(${p.id})">Del</button>
+      </div>
+    </div>
+  `).join('') + `<div style="margin-top:16px;"><button class="btn btn-primary" style="padding:10px 24px;" onclick="openModal('addProductModal')">+ Add Product</button></div>`;
+
+  // Refunds table
+  const refundAlertBadge = document.getElementById('refundAlertBadge');
+  if (refundAlertBadge) refundAlertBadge.style.display = refundReqs.length > 0 ? 'inline' : 'none';
+  const allRefunds = orders.filter(o => ['refund_requested','refund_approved','refund_denied'].includes(o.status));
+  const refundsTbody = document.getElementById('adminRefundsBody');
+  refundsTbody.innerHTML = allRefunds.length === 0
+    ? '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px;">No refund requests</td></tr>'
+    : allRefunds.map(o => {
+      const sc = {refund_requested:'status-refund-requested',refund_approved:'status-paid',refund_denied:'status-cancelled'}[o.status]||'';
+      const sl = {refund_requested:'REQUESTED',refund_approved:'APPROVED',refund_denied:'DENIED'}[o.status]||'';
+      return `<tr style="${o.status==='refund_requested'?'background:#a855f708;':''}">
+        <td><span style="font-family:JetBrains Mono;font-size:11px;">${o.id}</span></td>
+        <td>${getUserLabel(o.userId)}</td>
+        <td>${o.productEmoji} ${o.productName}</td>
+        <td style="font-family:JetBrains Mono;color:var(--accent);">$${o.price}</td>
+        <td style="font-size:12px;max-width:200px;">"${o.refundReason || ''}"</td>
+        <td><span class="status-badge ${sc}">${sl}</span></td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${o.status==='refund_requested'?`
+            <button class="btn btn-success" style="padding:5px 10px;font-size:11px;" onclick="resolveRefund('${o.id}','refund_approved')">Approve</button>
+            <button class="btn btn-danger" style="padding:5px 10px;font-size:11px;" onclick="resolveRefund('${o.id}','refund_denied')">Deny</button>
+          `:'—'}
+        </td>
+      </tr>`;
+    }).join('');
+
+  const tbody = document.getElementById('adminOrdersBody');
+  tbody.innerHTML = orders.length === 0 ? '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px;">No orders yet</td></tr>'
+    : orders.map(o => {
+    const date = new Date(o.orderedAt).toLocaleDateString();
+    const sc = {'pending':'status-pending','paid':'status-paid','cancelled':'status-cancelled','refund_requested':'status-refund-requested','refund_approved':'status-refund-approved','refund_denied':'status-refund-denied'}[o.status]||'status-pending';
+    const sl = {'pending':'PENDING','paid':'PAID','cancelled':'CANCELLED','refund_requested':'REFUND REQ','refund_approved':'REFUND OK','refund_denied':'REFUND NO'}[o.status]||o.status.toUpperCase();
+    return `<tr>
+      <td><span style="font-family:JetBrains Mono;font-size:11px;">${o.id}</span></td>
+      <td>${getUserLabel(o.userId)}</td>
+      <td>${o.productEmoji} ${o.productName}</td>
+      <td style="font-family:JetBrains Mono;color:var(--accent);">$${o.price}</td>
+      <td><span class="status-badge ${sc}">${sl}</span></td>
+      <td style="font-size:12px;color:var(--muted);">${date}</td>
+      <td>
+        ${o.status==='pending'?`<button class="btn btn-success" style="padding:5px 12px;font-size:11px;" onclick="markOrder('${o.id}','paid')">Mark Paid</button> `:''}
+        ${!['cancelled','refund_approved'].includes(o.status)?`<button class="btn btn-danger" style="padding:5px 12px;font-size:11px;" onclick="markOrder('${o.id}','cancelled')">Cancel</button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function saveProductAdmin(id) {
+  const products = DB.get('products');
+  const idx = products.findIndex(p=>p.id===id);
+  if (idx===-1) return;
+  products[idx].stock = parseInt(document.getElementById('stock_'+id).value)||0;
+  products[idx].discount = Math.min(100,Math.max(0,parseInt(document.getElementById('disc_'+id).value)||0));
+  DB.set('products', products);
+  showToast('Product updated!', 'success');
+  renderAdmin();
+  renderProducts();
+}
+
+function deleteProduct(id) {
+  if (!confirm('Delete this product?')) return;
+  let products = DB.get('products').filter(p=>p.id!==id);
+  DB.set('products', products);
+  renderAdmin(); renderProducts();
+  showToast('Product deleted.', 'success');
+}
+
+function addProduct() {
+  const name = document.getElementById('newProductName').value.trim();
+  const emoji = document.getElementById('newProductEmoji').value.trim();
+  const desc = document.getElementById('newProductDesc').value.trim();
+  const price = parseFloat(document.getElementById('newProductPrice').value);
+  const stock = parseInt(document.getElementById('newProductStock').value)||1;
+  if (!name || !emoji || !desc || isNaN(price) || price<=0) { showToast('Please fill all fields correctly', 'error'); return; }
+  const products = DB.get('products');
+  const newId = Math.max(...products.map(p=>p.id), 0) + 1;
+  products.push({ id:newId, name, emoji, desc, price, stock, discount:0 });
+  DB.set('products', products);
+  closeModal('addProductModal');
+  renderAdmin(); renderProducts();
+  showToast('Product added!', 'success');
+  ['newProductName','newProductEmoji','newProductDesc','newProductPrice'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('newProductStock').value='1';
+}
+
+function resolveRefund(orderId, status) {
+  const orders = DB.get('orders');
+  const o = orders.find(x=>x.id===orderId);
+  if (o) { o.status = status; DB.set('orders', orders); }
+  renderAdmin();
+  showToast(status === 'refund_approved' ? 'Refund approved!' : 'Refund denied.', status === 'refund_approved' ? 'success' : 'error');
+}
+
+function markOrder(orderId, status) {
+  const orders = DB.get('orders');
+  const o = orders.find(x=>x.id===orderId);
+  if (o) { o.status = status; DB.set('orders', orders); }
+  renderAdmin();
+  updateCartBadge();
+  showToast('Order updated!', 'success');
+}
+
+function updateCartBadge() {
+  if (!currentUser) { document.getElementById('cartBadge').textContent = '0'; document.getElementById('sidebarCartBadge').textContent = '0'; return; }
+  const pending = DB.get('orders').filter(o => o.userId === currentUser.username && o.status === 'pending').length;
+  document.getElementById('cartBadge').textContent = pending;
+  document.getElementById('sidebarCartBadge').textContent = pending;
+}
+
+// ==================== NAVIGATION ====================
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name)?.classList.add('active');
+  if (name==='shop') renderProducts();
+  if (name==='cart') { if (!currentUser) { showPage('auth'); showToast('Sign in to view cart','error'); return; } renderCart(); }
+  if (name==='orders') { if (!currentUser) { showPage('auth'); showToast('Sign in to view orders','error'); return; } renderOrders(); }
+  if (name==='admin') { if (!currentUser?.isAdmin) { showPage('home'); showToast('Access denied','error'); return; } renderAdmin(); }
+  // about, terms, coming-soon need no special logic — just show the page
+}
+
+// ==================== DRAG LOGIC ====================
+let isDragging = false;
+let dragId = null;
+let dragEl = null;
+const floatingDragon = document.getElementById('floatingDragon');
+let cloneActive = false;
+
+function startDrag(e, productId) {
+  e.preventDefault();
+  isDragging = true;
+  dragId = productId;
+  floatingDragon.style.display = 'block';
+  floatingDragon.style.left = e.clientX + 'px';
+  floatingDragon.style.top = e.clientY + 'px';
+
+  document.addEventListener('mousemove', onDragMove);
+  document.addEventListener('mouseup', onDragEnd);
+}
+
+function onDragMove(e) {
+  if (!isDragging) return;
+  floatingDragon.style.left = e.clientX + 'px';
+  floatingDragon.style.top = e.clientY + 'px';
+}
+
+function onDragEnd(e) {
+  isDragging = false;
+  floatingDragon.style.display = 'none';
+  document.removeEventListener('mousemove', onDragMove);
+  document.removeEventListener('mouseup', onDragEnd);
+  // Create a permanent floaty at drop location
+  spawnDragon(e.clientX, e.clientY);
+}
+
+function spawnDragon(x, y) {
+  const d = document.createElement('div');
+  d.textContent = '🐉';
+  d.style.cssText = `position:fixed;left:${x}px;top:${y}px;font-size:48px;z-index:9997;transform:translate(-50%,-50%);pointer-events:none;
+    filter:drop-shadow(0 8px 16px rgba(255,77,0,0.5));animation:spawnAnim .5s ease forwards;`;
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 500);
+}
+
+// Hero dragon drag
+const heroDragon = document.getElementById('heroDragon');
+let heroOffX=0, heroOffY=0, heroDragging=false;
+heroDragon.addEventListener('mousedown', e => {
+  heroDragging = true;
+  const rect = heroDragon.getBoundingClientRect();
+  heroOffX = e.clientX - rect.left;
+  heroOffY = e.clientY - rect.top;
+  heroDragon.style.position='fixed';
+  heroDragon.style.zIndex=9998;
+  heroDragon.style.animation='none';
+  heroDragon.style.pointerEvents='none';
+  document.addEventListener('mousemove', heroDragMove);
+  document.addEventListener('mouseup', heroDragEnd);
+});
+function heroDragMove(e) {
+  if (!heroDragging) return;
+  heroDragon.style.left=(e.clientX-heroOffX)+'px';
+  heroDragon.style.top=(e.clientY-heroOffY)+'px';
+}
+function heroDragEnd() {
+  heroDragging=false;
+  heroDragon.style.animation='float 3s ease-in-out infinite';
+  heroDragon.style.pointerEvents='auto';
+  document.removeEventListener('mousemove',heroDragMove);
+  document.removeEventListener('mouseup',heroDragEnd);
+}
+
+// ==================== MODALS ====================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target===m) closeModal(m.id); });
+});
+
+// ==================== TOAST ====================
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ==================== SPAWN ANIM ====================
+const styleEl = document.createElement('style');
+styleEl.textContent = `@keyframes spawnAnim { 0%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:0;transform:translate(-50%,-120%) scale(0.5)} }`;
+document.head.appendChild(styleEl);
+
+// ==================== SIDEBAR ====================
+function toggleSidebar() {
+  const open = document.getElementById('sidebar').classList.contains('open');
+  open ? closeSidebar() : openSidebar();
+}
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('open');
+  updateSidebarState();
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+function updateSidebarState() {
+  const loggedIn = !!currentUser;
+  // User card vs auth buttons
+  document.getElementById('sidebarUserCard').style.display = loggedIn ? 'block' : 'none';
+  document.getElementById('sidebarAuthBtns').style.display = loggedIn ? 'none' : 'block';
+  // Account section
+  document.getElementById('sidebarAccountSection').style.display = loggedIn ? 'block' : 'none';
+  // Admin section
+  document.getElementById('sidebarAdminSection').style.display = (loggedIn && currentUser.isAdmin) ? 'block' : 'none';
+  // User name & meta
+  if (loggedIn) {
+    document.getElementById('sidebarUserName').textContent = currentUser.username;
+    document.getElementById('sidebarUserMeta').textContent = currentUser.realName ? currentUser.realName : 'No real name on file';
+  }
+  // Cart badge sync
+  const count = document.getElementById('cartBadge').textContent;
+  document.getElementById('sidebarCartBadge').textContent = count;
+}
+
+// Init
+renderProducts();
+updateCartBadge();
+</script>
+</body>
+</html>
